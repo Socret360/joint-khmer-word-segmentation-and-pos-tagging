@@ -15,13 +15,11 @@ os.makedirs(args.output_dir, exist_ok=True)
 
 REVISED_TAG = {
     "M": "NN",
-    "RPN": "NN",
+    "RPN": "PRO",
     "CUR": "SYM",
     "DBL": "SYM",
     "ETC": "SYM",
     "KAN": "SYM",
-    "?": 'SYM',
-    "!": 'SYM',
     "UH": "PA",
     "VB_JJ": "VB",
     "VCOM": "VB"
@@ -40,6 +38,7 @@ def process_line(line):
         X += word
 
         y += f"/{tag}"
+
         for _ in word[1:]:
             y += "/NS"
 

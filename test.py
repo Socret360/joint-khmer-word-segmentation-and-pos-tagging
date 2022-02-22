@@ -82,5 +82,7 @@ with open("output/test.txt", "w") as output_file:
 
     for pos in pos_count:
         if pos not in ["NS"]:
-            accuracy = round((pos_count[pos]["correct"] / pos_count[pos]["corpus"])*100, 2)
-            print(f"-- {pos}: {accuracy}")
+            correct = pos_count[pos]["correct"]
+            corpus = pos_count[pos]["corpus"]
+            accuracy = round((correct / corpus)*100, 2)
+            print(f"-- {pos}: {accuracy} | correct: {correct}, corpus: {corpus}")
