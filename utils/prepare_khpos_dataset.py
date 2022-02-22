@@ -5,7 +5,6 @@ from numpy import character
 
 parser = argparse.ArgumentParser(description='Prepare khPOS dataset to correct format.')
 parser.add_argument('data_dir', type=str, help='Path to dataset directory.')
-parser.add_argument('characters_map', type=str, help='Path to character maps file.')
 parser.add_argument('--output_dir', type=str,
                     help='The directory to output the results.', default="output")
 args = parser.parse_args()
@@ -28,9 +27,6 @@ REVISED_TAG = {
     "VCOM": "VB"
 }
 
-with open(args.characters_map, "r") as characters_map_file:
-    characters = [i.split("\t")[0] for i in characters_map_file.readlines()]
-
 
 def process_line(line):
     X = ""
@@ -44,13 +40,8 @@ def process_line(line):
         X += word
 
         y += f"/{tag}"
-        for char in word[1:]:
-            if char == "_":
-                y += "/PAD"
-            elif char not in characters:
-                y += "/UNK"
-            else:
-                y += "/NS"
+        for _ in word[1:]:
+            y += "/NS"
 
     return X, y
 

@@ -21,8 +21,13 @@ characters = sorted(list(SEPARATOR) + list(CONSTS) + list(VOWELS) + list(SUB) + 
 
 with open("char_map.txt", "w") as file:
     for i, char in enumerate(characters):
-        file.write(f"{char}\t{i}\n")
+        file.write(f"{char}\t{i}")
+        if i != len(characters)-1:
+            file.write("\n")
 
 with open("pos_map.txt", "w") as file:
-    for i, tag in enumerate(["UNK", "AB", "AUX", "CC", "CD", "DT", "IN", "JJ", "VB", "NN", "PN", "PA", "PRO", "QT", "RB", "SYM", "NS", "PAD"]):
-        file.write(f"{tag}\t{i}\n")
+    tags = ["AB", "AUX", "CC", "CD", "DT", "IN", "JJ", "VB", "NN", "PN", "PA", "PRO", "QT", "RB", "SYM", "NS"]
+    for i, tag in enumerate(tags):
+        file.write(f"{tag}")
+        if i != len(tags)-1:
+            file.write("\n")
