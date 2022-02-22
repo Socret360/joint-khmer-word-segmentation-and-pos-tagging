@@ -1,5 +1,5 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import LSTM, Dense, Bidirectional, Activation, Input
+from tensorflow.keras.layers import LSTM, Dense, Bidirectional, Activation, Input, Flatten
 
 
 def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size=128) -> Model:
@@ -40,6 +40,7 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
     for i in range(num_stacks-1):
         x = Bidirectional(LSTM(hidden_layers_dim, return_sequences=i != num_stacks-1))(x)
 
+    x = Flatten()(x)
     x = Dense(output_dim)(x)
     x = Activation("softmax")(x)
 

@@ -58,6 +58,7 @@ with open("output/test.txt", "w") as output_file:
 
         pred = model.predict(np.array([sentence_input_vector]))[0]
 
+        words, tmp = [], []
         for char_idx, pos_vector in enumerate(pred):
             pos_index_pred = np.argmax(pos_vector)
             pos_index_target = np.argmax(sentence_output_vector[char_idx])
@@ -65,24 +66,32 @@ with open("output/test.txt", "w") as output_file:
             if pos_index_pred == pos_index_target:
                 pos_count[index_to_pos[pos_index_pred]]["correct"] += 1
 
-            # words, tmp = [], []
-            # for char_idx, pos_vector in enumerate(pred):
-            #     pos_index = np.argmax(pos_vector)
-            #     if index_to_pos[pos_index] == "NS":
-            #         tmp.append(sentence[char_idx])
-            #     else:
-            #         if len(tmp) > 0:
-            #             words.append("".join(tmp))
-            #             tmp = []
-            #         tmp.append(sentence[char_idx])
-            # if len(tmp) > 0:
-            #     words.append("".join(tmp))
+            if index_to_pos[pos_index_target] == "QT":
+                print(index_to_pos[pos_index_pred])
 
-            # output_file.write(f"{sentence}\t{' '.join(words)}\n")
+            if index_to_pos[pos_index_pred] == "NS":
+                tmp.append(sentence[char_idx])
+            else:
+                if len(tmp) > 0:
+                    words.append("".join(tmp))
+                    tmp = []
+                tmp.append(sentence[char_idx])
 
+        if len(tmp) > 0:
+            words.append("".join(tmp))
+
+        output_file.write(f"{sentence}\t{' '.join(words)}\n")
+
+    total_correct = 0
+    total_corpus = 0
     for pos in pos_count:
         if pos not in ["NS"]:
             correct = pos_count[pos]["correct"]
             corpus = pos_count[pos]["corpus"]
+            total_corpus += pos_count[pos]["corpus"]
+            total_correct += pos_count[pos]["correct"]
             accuracy = round((correct / corpus)*100, 2)
             print(f"-- {pos}: {accuracy} | correct: {correct}, corpus: {corpus}")
+
+    accuracy = round((total_correct / total_corpus)*100, 2)
+    print(f"AVERAGE ACCURACY: {accuracy}")
