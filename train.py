@@ -46,6 +46,8 @@ model = Network(
     hidden_layers_dim=config["model"]["hidden_layers_dim"],
 )
 
+model.summary()
+
 model.compile(
     loss='categorical_crossentropy',
     optimizer=Adam(learning_rate=config["training"]["learning_rate"]),

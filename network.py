@@ -37,10 +37,8 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
 
     input_layer = Input(shape=(None, embedding_dim), batch_size=batch_size)
     x = Bidirectional(LSTM(hidden_layers_dim, return_sequences=True))(input_layer)
-    for i in range(num_stacks-1):
-        x = Bidirectional(LSTM(hidden_layers_dim, return_sequences=i != num_stacks-1))(x)
-
-    x = Flatten()(x)
+    for _ in range(num_stacks - 1):
+        x = Bidirectional(LSTM(hidden_layers_dim, return_sequences=True))(x)
     x = Dense(output_dim)(x)
     x = Activation("softmax")(x)
 
