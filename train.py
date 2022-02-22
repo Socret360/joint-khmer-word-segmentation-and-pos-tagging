@@ -47,7 +47,6 @@ model = Network(
 )
 
 model.compile(
-    metrics=["accuracy"],
     loss='categorical_crossentropy',
     optimizer=Adam(learning_rate=config["training"]["learning_rate"]),
 )
