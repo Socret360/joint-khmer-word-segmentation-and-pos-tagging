@@ -49,9 +49,11 @@ def process_dataset(filepath):
     samples = []
     with open(filepath, "r") as data_file:
         lines = data_file.readlines()
-        for line in lines:
+        for i, line in enumerate(lines):
             X, y = process_line(line)
-            samples.append(f"{X}\t{y}\n")
+            samples.append(f"{X}\t{y}")
+            if i != len(lines) - 1:
+                samples.append("\n")
 
     return samples
 
