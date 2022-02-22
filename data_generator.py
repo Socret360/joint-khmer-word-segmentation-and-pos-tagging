@@ -71,8 +71,8 @@ class DataGenerator(Sequence):
         for sample_idx in batch:
             sentence, sentence_tag = self.samples[sample_idx].split("\t")
             num_paddings = max_sentence_length - len(sentence)
-            sentence_input_vector = np.zeros((len(sentence) + num_paddings, self.num_chars))
-            sentence_output_vector = np.zeros((len(sentence) + num_paddings, self.num_pos))
+            sentence_input_vector = np.zeros((len(sentence) + num_paddings, self.num_chars), dtype=np.float32)
+            sentence_output_vector = np.zeros((len(sentence) + num_paddings, self.num_pos), dtype=np.float32)
 
             for i, char in enumerate(sentence):
                 if char in self.char_to_index:

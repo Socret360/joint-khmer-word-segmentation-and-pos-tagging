@@ -43,3 +43,5 @@ nodeLanguageServer/**
 nodeLanguageServer.*/**
 dist/**
 output
+train.sh
+test.sh

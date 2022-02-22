@@ -1,9 +1,11 @@
+from gc import callbacks
 import os
 import json
 import argparse
 from network import Network
 from data_generator import DataGenerator
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint
 from utils import str2bool, read_pos_map, read_char_map, read_config, read_samples
 
 
@@ -50,13 +52,25 @@ model.summary()
 
 model.compile(
     loss='categorical_crossentropy',
-    optimizer=Adam(learning_rate=config["training"]["learning_rate"]),
+    optimizer=Adam(learning_rate=config["training"]["learning_rate"])
 )
 
 model.fit(
     x=data_generator,
     epochs=args.epochs,
     batch_size=config["training"]["batch_size"],
+    callbacks=[
+        ModelCheckpoint(
+            filepath=os.path.join(
+                args.output_dir,
+                "cp_{epoch:02d}_loss-{loss:.2f}.h5"
+            ),
+            save_weights_only=False,
+            save_best_only=True,
+            monitor='loss',
+            mode='min'
+        ),
+    ]
 )
 
 model.save_weights(os.path.join(args.output_dir, "model.h5"))
