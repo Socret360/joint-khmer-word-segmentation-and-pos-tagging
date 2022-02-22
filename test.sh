@@ -3,4 +3,4 @@ python test.py \
 /Users/socretlee/CodingDrive/freelancing/joint-khmer-word-segmentation-and-pos-tagging/output/test_close.txt \
 /Users/socretlee/CodingDrive/freelancing/joint-khmer-word-segmentation-and-pos-tagging/output/char_map.txt \
 /Users/socretlee/CodingDrive/freelancing/joint-khmer-word-segmentation-and-pos-tagging/output/pos_map.txt \
-/Users/socretlee/CodingDrive/freelancing/joint-khmer-word-segmentation-and-pos-tagging/output/model_200.h5
+/Users/socretlee/CodingDrive/freelancing/joint-khmer-word-segmentation-and-pos-tagging/output/cp_297_loss-0.01.h5
