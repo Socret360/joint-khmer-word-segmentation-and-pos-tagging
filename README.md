@@ -1,9 +1,26 @@
 # Joint Word Segmentation and POS Tagging in Keras
 
+A Keras implementation of a deep learning network to simultaneously perform Word Segmentation and Part-of-Speech (POS) Tagging introduced by Bouy et al. in the paper [Joint Khmer Word Segmentation and Part-of-Speech Tagging Using Deep Learning](https://arxiv.org/abs/2103.16801).
+
 ## Requirements
 
 ```
 tensorflow==2.7.0
+```
+
+## Config File Layout
+
+```json
+{
+    "training": {
+        "batch_size": 128, // The batch size during training
+        "learning_rate": 0.001 // The learning rate
+    },
+    "model": {
+        "num_stacks": 2, // The number of LSTM layer stacks.
+        "hidden_layers_dim": 100 // The number of units for each hidden LSTM layers.
+    }
+}
 ```
 
 ## Training on Custom Dataset
@@ -44,19 +61,41 @@ optional arguments:
   --output_dir OUTPUT_DIR   path to output directory.
 ```
 
-## Config File Layout
+## Evaluating on Custom Dataset
 
-```json
-{
-    "training": {
-        "batch_size": 128, // The batch size during training
-        "learning_rate": 0.001 // The learning rate
-    },
-    "model": {
-        "num_stacks": 2, // The number of LSTM layer stacks.
-        "hidden_layers_dim": 100 // The number of units for each hidden LSTM layers.
-    }
-}
+### 1. Dataset Format
+
+This repo expects datasets as text files in the below format. The sentence and sentence_tag are separated by a `\t` character.
+
+```txt
+sentence  sentence_tag
+```
+
+Sample:
+
+```txt
+ផលិត^កម្ម	/NN/NS/NS/NS/NS/NS/NS/NS/NS
+នេះគឺ_ជាទេព្យផល្គុន	/DT/NS/NS/VB/NS/NS/NS/NS/PN/NS/NS/NS/NS/PN/NS/NS/NS/NS/NS
+...
+```
+
+### 2. Start Evaluation Process
+
+```cmd
+python evaluate.py config test_set char_map pos_map weights --output_dir=output
+```
+
+```txt
+positional arguments:
+  config                path to config file.
+  test_set              path to test dataset.
+  char_map              path to characters map file.
+  pos_map               path to pos map file.
+  weights               path to weights file.
+
+optional arguments:
+  -h, --help                show this help message and exit
+  --output_dir OUTPUT_DIR   path to output directory.
 ```
 
 ## About Pretrained Weights

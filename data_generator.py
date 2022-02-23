@@ -43,9 +43,7 @@ class DataGenerator(Sequence):
         self.num_chars = len(char_map)
         self.indices = range(0, len(self.samples))
         self.pos_to_index = {pos: i for i, pos in enumerate(pos_map)}
-        self.index_to_pos = {i: pos for i, pos in enumerate(pos_map)}
         self.char_to_index = {char: i for i, char in enumerate(char_map)}
-        self.index_to_char = {i: char for i, char in enumerate(char_map)}
         self.on_epoch_end()
 
     def __len__(self):

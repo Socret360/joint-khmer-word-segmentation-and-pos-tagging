@@ -5,12 +5,14 @@ import numpy as np
 from network import Network
 from utils import read_pos_map, read_char_map, read_config, read_samples
 
-parser = argparse.ArgumentParser(description='Start the test process.')
+parser = argparse.ArgumentParser(description='Start the evaluation process.')
 parser.add_argument('config', type=str, help='path to config file.')
 parser.add_argument('test_set', type=str, help='path to test dataset.')
 parser.add_argument('char_map', type=str, help='path to characters map file.')
 parser.add_argument('pos_map', type=str, help='path to pos map file.')
 parser.add_argument('weights', type=str, help='path to weights file.')
+parser.add_argument('--output_dir', type=str,
+                    help='path to output directory.', default="output")
 args = parser.parse_args()
 
 assert os.path.exists(args.weights), "weights doest not exist."
@@ -25,7 +27,6 @@ num_pos = len(pos_map)
 pos_to_index = {pos: i for i, pos in enumerate(pos_map)}
 index_to_pos = {i: pos for i, pos in enumerate(pos_map)}
 char_to_index = {char: i for i, char in enumerate(char_map)}
-index_to_char = {i: char for i, char in enumerate(char_map)}
 
 model = Network(
     output_dim=len(pos_map),
@@ -39,7 +40,7 @@ model.load_weights(args.weights, by_name=True)
 
 pos_count = {pos: {"correct": 0, "corpus": 0} for pos in pos_map}
 
-with open("output/test.txt", "w") as output_file:
+with open(os.path.join(args.output_dir, "evaluation_results.txt"), "w") as output_file:
     for sample in samples:
         sentence, sentence_tag = sample.split("\t")
         sentence_input_vector = np.zeros((len(sentence), num_chars))
