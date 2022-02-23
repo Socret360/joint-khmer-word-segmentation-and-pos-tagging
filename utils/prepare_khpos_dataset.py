@@ -1,7 +1,6 @@
 import os
 import argparse
 
-from numpy import character
 
 parser = argparse.ArgumentParser(description='Prepare khPOS dataset to correct format.')
 parser.add_argument('data_dir', type=str, help='Path to dataset directory.')

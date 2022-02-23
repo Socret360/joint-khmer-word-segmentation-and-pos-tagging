@@ -2,14 +2,32 @@
 
 ## Requirements
 
-```txt
+```
 tensorflow==2.7.0
 ```
 
-## Training
+## Training on Custom Dataset
+
+### 1. Dataset Format
+
+This repo expects datasets as text files in the below format. The sentence and sentence_tag are separated by a `\t` character.
+
+```txt
+sentence  sentence_tag
+```
+
+Sample:
+
+```txt
+ផលិត^កម្ម	/NN/NS/NS/NS/NS/NS/NS/NS/NS
+នេះគឺ_ជាទេព្យផល្គុន	/DT/NS/NS/VB/NS/NS/NS/NS/PN/NS/NS/NS/NS/PN/NS/NS/NS/NS/NS
+...
+```
+
+### 2. Start training
 
 ```cmd
-python train.py config train_set char_map pos_map --shuffle=False --epochs=100 --output_dir=output
+python train.py config train_set char_map pos_map --shuffle=False --epochs=300 --output_dir=output
 ```
 
 ```txt
@@ -20,17 +38,52 @@ positional arguments:
   pos_map               path to pos map file.
 
 optional arguments:
-  -h, --help                show this help message and exit
-  --shuffle [SHUFFLE]       whether to shuffle the dataset when creating the batch
-  --epochs EPOCHS           the number of epochs to train
+  -h, --help                show this help message and exit.
+  --shuffle [SHUFFLE]       whether to shuffle the dataset when creating the batch.
+  --epochs EPOCHS           the number of epochs to train.
   --output_dir OUTPUT_DIR   path to output directory.
 ```
 
-## Using Pretrained Model
+## Config File Layout
 
-Model train on khPOS train.all2
+```json
+{
+    "training": {
+        "batch_size": 128, // The batch size during training
+        "learning_rate": 0.001 // The learning rate
+    },
+    "model": {
+        "num_stacks": 2, // The number of LSTM layer stacks.
+        "hidden_layers_dim": 100 // The number of units for each hidden LSTM layers.
+    }
+}
+```
 
-## Pretrained Model Evaluation
+## About Pretrained Weights
+
+You can access a pretrained weights [here](pretrained). The network was trained for 300 epochs on **khPOS's train.all2** dataset.
+
+## Converting Pretrained Weights
+
+You can convert the pretrained weights into a consolidated Keras format or tflite using the below command
+
+```cmd
+python convert.py config weights char_map pos_map --output_type=keras --output_dir=output
+```
+```txt
+positional arguments:
+  config                path to config file.
+  weights               path to the weight file.
+  char_map              path to characters map file.
+  pos_map               path to pos map file.
+
+optional arguments:
+  -h, --help                  show this help message and exit.
+  --output_dir OUTPUT_DIR     path to output directory.
+  --output_type OUTPUT_TYPE   the type of the output model. One of type: "keras", "tflite"
+```
+
+## Pretrained Weights Evaluation
 
 <table>
     <thead>

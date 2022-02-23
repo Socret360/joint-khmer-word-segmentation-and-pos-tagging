@@ -1,0 +1,16 @@
+AB
+AUX
+CC
+CD
+DT
+IN
+JJ
+VB
+NN
+PN
+PA
+PRO
+QT
+RB
+SYM
+NS
