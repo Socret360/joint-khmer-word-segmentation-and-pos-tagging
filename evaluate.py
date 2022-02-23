@@ -67,9 +67,6 @@ with open(os.path.join(args.output_dir, "evaluation_results.txt"), "w") as outpu
             if pos_index_pred == pos_index_target:
                 pos_count[index_to_pos[pos_index_pred]]["correct"] += 1
 
-            if index_to_pos[pos_index_target] == "QT":
-                print(index_to_pos[pos_index_pred])
-
             if index_to_pos[pos_index_pred] == "NS":
                 tmp.append(sentence[char_idx])
             else:
