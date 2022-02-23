@@ -100,7 +100,7 @@ optional arguments:
 
 ## About Pretrained Weights
 
-You can access a pretrained weights [here](pretrained). The network was trained for 300 epochs on **khPOS's train.all2** dataset.
+You can access a pretrained weights [here](pretrained). The network was trained for 300 epochs on [khPOS's train.all2 dataset](https://github.com/ye-kyaw-thu/khPOS).
 
 ## Converting Pretrained Weights
 
