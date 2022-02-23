@@ -263,5 +263,6 @@ optional arguments:
 
 ## References
 
-- Buoy, R., Taing, N., & Kor, S. (2021). Joint Khmer Word Segmentation and Part-of-Speech Tagging Using Deep Learning. arXiv preprint arXiv:2103.16801.
-- Loem, M. (2021, May 4). Joint Khmer Word Segmentation and POS tagging. Medium. Retrieved February 22, 2022, from <https://towardsdatascience.com/joint-khmer-word-segmentation-and-pos-tagging-cad650e78d30>
+- Buoy, R., Taing, N., & Kor, S. (2021). Joint Khmer Word Segmentation and Part-of-Speech Tagging Using Deep Learning. Retrieved from <https://arxiv.org/abs/2103.16801>
+- Loem, M. (2021, May 4). Joint Khmer Word Segmentation and POS tagging. Medium. Retrieved from <https://towardsdatascience.com/joint-khmer-word-segmentation-and-pos-tagging-cad650e78d30>
+- Ye, K. T., Vichet, C., & Yoshinori, S. (2017). Comparison of Six POS Tagging Methods on 12K Sentences Khmer Language POS Tagged Corpus. First Regional Conference on Optical character recognition and Natural language processing technologies for ASEAN languages (ONA 2017). Retrieved from <https://github.com/ye-kyaw-thu/khPOS/blob/master/khpos.pdf>
