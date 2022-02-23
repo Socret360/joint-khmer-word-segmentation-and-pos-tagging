@@ -36,7 +36,7 @@ model = Network(
     output_dim=len(pos_map),
     embedding_dim=len(char_map),
     num_stacks=config["model"]["num_stacks"],
-    batch_size=config["training"]["batch_size"],
+    batch_size=None,
     hidden_layers_dim=config["model"]["hidden_layers_dim"],
 )
 

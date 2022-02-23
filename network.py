@@ -32,7 +32,8 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
     assert output_dim > 0, "output_dim must be larger than 0"
     assert embedding_dim > 0, "embedding_dim must be larger than 0"
     assert num_stacks > 0, "num_stacks must be larger than 0"
-    assert batch_size > 0, "batch_size must be larger than 0"
+    if batch_size is not None:
+        assert batch_size > 0, "batch_size must be larger than 0"
     assert hidden_layers_dim > 0, "hidden_layers_dim must be larger than 0"
 
     input_layer = Input(shape=(None, embedding_dim), batch_size=batch_size)

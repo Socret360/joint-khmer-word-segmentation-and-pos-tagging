@@ -45,3 +45,4 @@ dist/**
 output
 train.sh
 test.sh
+main.py
