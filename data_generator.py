@@ -57,6 +57,13 @@ class DataGenerator(Sequence):
         X, y = self.__get_data(batch)
         return X, y
 
+    def __call__(self):
+        for i in range(self.__len__()):
+            yield self.__getitem__(i)
+
+            if i == self.__len__()-1:
+                self.on_epoch_end()
+
     def on_epoch_end(self):
         self.index = np.arange(len(self.indices))
         if self.shuffle:
