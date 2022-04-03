@@ -6,7 +6,6 @@ import os
 import json
 import argparse
 from network import Network
-from data_generator import DataGenerator
 from utils import str2bool, read_pos_map, read_char_map, read_config, parse_tf_record_element
 
 parser = argparse.ArgumentParser(description='Start the training process.')
@@ -16,8 +15,6 @@ parser.add_argument('char_map', type=str, help='path to characters map file.')
 parser.add_argument('pos_map', type=str, help='path to pos map file.')
 parser.add_argument('--shuffle', type=str2bool, nargs='?',
                     help='whether to shuffle the dataset when creating the batch', default=True)
-parser.add_argument('--colab_tpu', type=str2bool, nargs='?',
-                    help='whether to use google colab\'s tpu', default=False)
 parser.add_argument('--epochs', type=int,
                     help='the number of epochs to train', default=100)
 parser.add_argument('--output_dir', type=str,
@@ -34,96 +31,41 @@ os.makedirs(args.output_dir, exist_ok=True)
 char_map, char_to_index, index_to_char = read_char_map(args.char_map)
 pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
 
-if args.colab_tpu:
-    try:
-        resolver = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
-        strategy = tf.distribute.experimental.TPUStrategy(resolver)
-        print("Running on TPU ", resolver.master())
-        print("REPLICAS: ", strategy.num_replicas_in_sync)
-    except:
-        print("WARNING: No TPU detected.")
-        strategy = tf.distribute.MirroredStrategy()
+model = Network(
+    output_dim=len(pos_map),
+    embedding_dim=len(char_map),
+    num_stacks=config["model"]["num_stacks"],
+    hidden_layers_dim=config["model"]["hidden_layers_dim"],
+    max_sentence_length=config["model"]["max_sentence_length"],
+)
 
-    with strategy.scope():
-        batch_size = config["training"]["batch_size"] * strategy.num_replicas_in_sync
-        model = Network(
-            output_dim=len(pos_map),
-            embedding_dim=len(char_map),
-            num_stacks=config["model"]["num_stacks"],
-            hidden_layers_dim=config["model"]["hidden_layers_dim"],
-            max_sentence_length=config["model"]["max_sentence_length"],
-        )
-        model.summary()
+model.summary()
 
-        model.compile(
-            loss='categorical_crossentropy',
-            optimizer=Adam(learning_rate=config["training"]["learning_rate"])
-        )
+model.compile(
+    loss='categorical_crossentropy',
+    optimizer=Adam(learning_rate=config["training"]["learning_rate"])
+)
 
-        dataset = tf.data.TFRecordDataset(args.train_set)
-        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
+dataset = tf.data.TFRecordDataset(args.train_set)
+dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
 
-        num_samples = 0
-        for fn in dataset:
-            for record in tf.python_io.tf_record_iterator(fn):
-                num_samples += 1
-
-        model.fit(
-            dataset,
-            shuffle=args.shuffle,
-            epochs=args.epochs,
-            batch_size=batch_size,
-            steps_per_epoch=num_samples//batch_size,
-            callbacks=[
-                ModelCheckpoint(
-                    filepath=os.path.join(
-                        args.output_dir,
-                        "cp_{epoch:02d}_loss-{loss:.2f}.h5"
-                    ),
-                    save_weights_only=False,
-                    save_best_only=True,
-                    monitor='loss',
-                    mode='min'
-                ),
-            ]
-        )
-
-else:
-    model = Network(
-        output_dim=len(pos_map),
-        embedding_dim=len(char_map),
-        num_stacks=config["model"]["num_stacks"],
-        hidden_layers_dim=config["model"]["hidden_layers_dim"],
-        max_sentence_length=config["model"]["max_sentence_length"],
-    )
-
-    model.summary()
-
-    model.compile(
-        loss='categorical_crossentropy',
-        optimizer=Adam(learning_rate=config["training"]["learning_rate"])
-    )
-
-    dataset = tf.data.TFRecordDataset(args.train_set)
-    dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
-
-    model.fit(
-        x=dataset,
-        shuffle=args.shuffle,
-        epochs=args.epochs,
-        batch_size=config["training"]["batch_size"],
-        callbacks=[
-            ModelCheckpoint(
-                filepath=os.path.join(
-                    args.output_dir,
-                    "cp_{epoch:02d}_loss-{loss:.2f}.h5"
-                ),
-                save_weights_only=False,
-                save_best_only=True,
-                monitor='loss',
-                mode='min'
+model.fit(
+    x=dataset,
+    shuffle=args.shuffle,
+    epochs=args.epochs,
+    batch_size=config["training"]["batch_size"],
+    callbacks=[
+        ModelCheckpoint(
+            filepath=os.path.join(
+                args.output_dir,
+                "cp_{epoch:02d}_loss-{loss:.2f}.h5"
             ),
-        ]
-    )
+            save_weights_only=False,
+            save_best_only=True,
+            monitor='loss',
+            mode='min'
+        ),
+    ]
+)
 
 model.save_weights(os.path.join(args.output_dir, "model.h5"))
