@@ -1,7 +1,6 @@
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow as tf
-from gc import callbacks
 import os
 import json
 import numpy as np
@@ -58,7 +57,7 @@ model.fit(
     shuffle=args.shuffle,
     epochs=args.epochs,
     batch_size=config["training"]["batch_size"],
-    steps_per_epoch=num_samples//config["training"]["batch_size"]
+    steps_per_epoch=num_samples//config["training"]["batch_size"],
     callbacks=[
         ModelCheckpoint(
             filepath=os.path.join(
