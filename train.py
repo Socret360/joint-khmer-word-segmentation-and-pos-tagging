@@ -35,14 +35,6 @@ char_map = read_char_map(args.char_map)
 pos_map = read_pos_map(args.pos_map)
 samples = read_samples(args.train_set)
 
-data_generator = DataGenerator(
-    samples=samples,
-    pos_map=pos_map,
-    char_map=char_map,
-    shuffle=args.shuffle,
-    batch_size=config["training"]["batch_size"],
-    max_sentence_length=config["model"]["max_sentence_length"],
-)
 
 if args.colab_tpu:
     # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
@@ -69,7 +61,16 @@ if args.colab_tpu:
         )
 
         model.fit(
-            x=tf.data.Dataset.from_generator(data_generator),
+            x=tf.data.Dataset.from_generator(
+                DataGenerator(
+                    samples=samples,
+                    pos_map=pos_map,
+                    char_map=char_map,
+                    shuffle=args.shuffle,
+                    batch_size=config["training"]["batch_size"],
+                    max_sentence_length=config["model"]["max_sentence_length"],
+                )
+            ),
             epochs=args.epochs,
             batch_size=config["training"]["batch_size"],
             callbacks=[
@@ -104,7 +105,14 @@ else:
     )
 
     model.fit(
-        x=data_generator,
+        x=DataGenerator(
+            samples=samples,
+            pos_map=pos_map,
+            char_map=char_map,
+            shuffle=args.shuffle,
+            batch_size=config["training"]["batch_size"],
+            max_sentence_length=config["model"]["max_sentence_length"],
+        ),
         epochs=args.epochs,
         batch_size=config["training"]["batch_size"],
         callbacks=[
