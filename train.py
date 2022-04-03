@@ -68,6 +68,24 @@ if args.colab_tpu:
             optimizer=Adam(learning_rate=config["training"]["learning_rate"])
         )
 
+        model.fit(
+            x=tf.data.Dataset.from_generator(data_generator),
+            epochs=args.epochs,
+            batch_size=config["training"]["batch_size"],
+            callbacks=[
+                ModelCheckpoint(
+                    filepath=os.path.join(
+                        args.output_dir,
+                        "cp_{epoch:02d}_loss-{loss:.2f}.h5"
+                    ),
+                    save_weights_only=False,
+                    save_best_only=True,
+                    monitor='loss',
+                    mode='min'
+                ),
+            ]
+        )
+
 else:
     model = Network(
         output_dim=len(pos_map),
@@ -85,22 +103,22 @@ else:
         optimizer=Adam(learning_rate=config["training"]["learning_rate"])
     )
 
-model.fit(
-    x=data_generator,
-    epochs=args.epochs,
-    batch_size=config["training"]["batch_size"],
-    callbacks=[
-        ModelCheckpoint(
-            filepath=os.path.join(
-                args.output_dir,
-                "cp_{epoch:02d}_loss-{loss:.2f}.h5"
+    model.fit(
+        x=data_generator,
+        epochs=args.epochs,
+        batch_size=config["training"]["batch_size"],
+        callbacks=[
+            ModelCheckpoint(
+                filepath=os.path.join(
+                    args.output_dir,
+                    "cp_{epoch:02d}_loss-{loss:.2f}.h5"
+                ),
+                save_weights_only=False,
+                save_best_only=True,
+                monitor='loss',
+                mode='min'
             ),
-            save_weights_only=False,
-            save_best_only=True,
-            monitor='loss',
-            mode='min'
-        ),
-    ]
-)
+        ]
+    )
 
 model.save_weights(os.path.join(args.output_dir, "model.h5"))
