@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def parse_tf_record_element(element, num_chars, num_pos, char_to_index, pos_to_index, max_sentence_length):
+def parse_tf_record_element(element, num_chars, num_pos, max_sentence_length):
     data = {
         'sentence': tf.io.FixedLenFeature([], tf.string),
         'sentence_tag': tf.io.FixedLenFeature([], tf.string),

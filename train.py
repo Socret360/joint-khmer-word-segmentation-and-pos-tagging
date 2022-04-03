@@ -34,15 +34,7 @@ os.makedirs(args.output_dir, exist_ok=True)
 char_map, char_to_index, index_to_char = read_char_map(args.char_map)
 pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
 
-
 if args.colab_tpu:
-    # # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
-    # resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
-    # # Connect to the TPU handle and initialise it
-    # tf.config.experimental_connect_to_cluster(resolver)
-    # tf.tpu.experimental.initialize_tpu_system(resolver)
-    # strategy = tf.distribute.experimental.TPUStrategy(resolver)
-
     try:
         resolver = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
         strategy = tf.distribute.experimental.TPUStrategy(resolver)
@@ -58,8 +50,8 @@ if args.colab_tpu:
             output_dim=len(pos_map),
             embedding_dim=len(char_map),
             num_stacks=config["model"]["num_stacks"],
-            batch_size=batch_size,
             hidden_layers_dim=config["model"]["hidden_layers_dim"],
+            batch_size=batch_size,
             max_sentence_length=config["model"]["max_sentence_length"],
         )
         model.summary()
