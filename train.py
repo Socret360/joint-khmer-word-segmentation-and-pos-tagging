@@ -62,12 +62,15 @@ if args.colab_tpu:
 
         dataset = tf.data.TFRecordDataset(args.train_set)
         dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
-        dataset = dataset.batch(batch_size)
+
+        num_samples = sum(1 for record in dataset)
 
         model.fit(
             dataset,
             shuffle=args.shuffle,
             epochs=args.epochs,
+            batch_size=batch_size,
+            steps_per_epoch=num_samples//batch_size,
             callbacks=[
                 ModelCheckpoint(
                     filepath=os.path.join(
