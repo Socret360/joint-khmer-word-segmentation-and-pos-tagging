@@ -38,12 +38,21 @@ dataset = tf.data.TFRecordDataset(args.train_set)
 dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
 
 if args.colab_tpu:
-    # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
-    resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
-    # Connect to the TPU handle and initialise it
-    tf.config.experimental_connect_to_cluster(resolver)
-    tf.tpu.experimental.initialize_tpu_system(resolver)
-    strategy = tf.distribute.experimental.TPUStrategy(resolver)
+    # # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
+    # resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
+    # # Connect to the TPU handle and initialise it
+    # tf.config.experimental_connect_to_cluster(resolver)
+    # tf.tpu.experimental.initialize_tpu_system(resolver)
+    # strategy = tf.distribute.experimental.TPUStrategy(resolver)
+
+    try:
+        resolver = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
+        strategy = tf.distribute.experimental.TPUStrategy(resolver)
+        print("Running on TPU ", resolver.master())
+        print("REPLICAS: ", strategy.num_replicas_in_sync)
+    except:
+        print("WARNING: No TPU detected.")
+        strategy = tf.distribute.MirroredStrategy()
 
     with strategy.scope():
         batch_size = config["training"]["batch_size"] * strategy.num_replicas_in_sync
