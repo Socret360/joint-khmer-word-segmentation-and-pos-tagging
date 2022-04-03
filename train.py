@@ -4,6 +4,7 @@ import tensorflow as tf
 from gc import callbacks
 import os
 import json
+import nump as np
 import argparse
 from network import Network
 from utils import str2bool, read_pos_map, read_char_map, read_config, parse_tf_record_element
@@ -50,11 +51,14 @@ dataset = tf.data.TFRecordDataset(args.train_set)
 dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
 dataset = dataset.batch(config["training"]["batch_size"])
 
+num_samples = dataset.reduce(np.int64(0), lambda x, _: x + 1)
+
 model.fit(
     x=dataset,
     shuffle=args.shuffle,
     epochs=args.epochs,
     batch_size=config["training"]["batch_size"],
+    steps_per_epoch=num_samples//config["training"]["batch_size"]
     callbacks=[
         ModelCheckpoint(
             filepath=os.path.join(
