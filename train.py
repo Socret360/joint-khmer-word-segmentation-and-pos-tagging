@@ -63,7 +63,7 @@ if args.colab_tpu:
 
         model.fit(
             x=tf.data.Dataset.from_generator(
-                DataGenerator(
+                lambda: DataGenerator(
                     samples=samples,
                     pos_map=pos_map,
                     char_map=char_map,
