@@ -4,7 +4,7 @@ import tensorflow as tf
 from gc import callbacks
 import os
 import json
-import nump as np
+import numpy as np
 import argparse
 from network import Network
 from utils import str2bool, read_pos_map, read_char_map, read_config, parse_tf_record_element
