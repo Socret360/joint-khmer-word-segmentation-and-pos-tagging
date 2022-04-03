@@ -23,4 +23,4 @@ def read_char_map(char_map_filepath) -> List[str]:
     with open(char_map_filepath, "r") as file:
         char_map = [i.strip("\n").split("\t")[0] for i in file.readlines()]
         char_map += ["UNK"]
-        return char_map
+        return char_map, {char: i for i, char in enumerate(char_map)}, {i: char for i, char in enumerate(char_map)}

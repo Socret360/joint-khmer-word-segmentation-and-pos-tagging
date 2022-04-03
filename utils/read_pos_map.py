@@ -20,4 +20,5 @@ def read_pos_map(pos_map_filepath) -> List[str]:
     """
     assert os.path.exists, "pos_map_filepath does not exist."
     with open(pos_map_filepath, "r") as file:
-        return [i.strip("\n").split("\t")[0] for i in file.readlines()]
+        pos_map = [i.strip("\n").split("\t")[0] for i in file.readlines()]
+        return pos_map, {pos: i for i, pos in enumerate(pos_map)}, {i: pos for i, pos in enumerate(pos_map)}

@@ -7,7 +7,7 @@ import json
 import argparse
 from network import Network
 from data_generator import DataGenerator
-from utils import str2bool, read_pos_map, read_char_map, read_config, read_samples
+from utils import str2bool, read_pos_map, read_char_map, read_config, parse_tf_record_element
 
 parser = argparse.ArgumentParser(description='Start the training process.')
 parser.add_argument('config', type=str, help='path to config file.')
@@ -31,10 +31,11 @@ config = read_config(args.config)
 
 os.makedirs(args.output_dir, exist_ok=True)
 
-char_map = read_char_map(args.char_map)
-pos_map = read_pos_map(args.pos_map)
-samples = read_samples(args.train_set)
+char_map, char_to_index, index_to_char = read_char_map(args.char_map)
+pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
 
+dataset = tf.data.TFRecordDataset(args.train_set)
+dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
 
 if args.colab_tpu:
     # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
@@ -62,23 +63,10 @@ if args.colab_tpu:
         )
 
         model.fit(
-            x=tf.data.Dataset.from_generator(
-                lambda: DataGenerator(
-                    samples=samples,
-                    pos_map=pos_map,
-                    char_map=char_map,
-                    shuffle=args.shuffle,
-                    batch_size=batch_size,
-                    max_sentence_length=config["model"]["max_sentence_length"],
-                ),
-                output_types=(tf.float32, tf.float32),
-                output_shapes=(
-                    tf.TensorShape([batch_size, config["model"]["max_sentence_length"], len(char_map)]),
-                    tf.TensorShape([batch_size, config["model"]["max_sentence_length"], len(pos_map)])
-                ),
-            ),
+            x=dataset,
+            shuffle=args.shuffle,
             epochs=args.epochs,
-            batch_size=config["training"]["batch_size"],
+            batch_size=batch_size,
             callbacks=[
                 ModelCheckpoint(
                     filepath=os.path.join(
@@ -111,14 +99,8 @@ else:
     )
 
     model.fit(
-        x=DataGenerator(
-            samples=samples,
-            pos_map=pos_map,
-            char_map=char_map,
-            shuffle=args.shuffle,
-            batch_size=config["training"]["batch_size"],
-            max_sentence_length=config["model"]["max_sentence_length"],
-        ),
+        x=dataset,
+        shuffle=args.shuffle,
         epochs=args.epochs,
         batch_size=config["training"]["batch_size"],
         callbacks=[

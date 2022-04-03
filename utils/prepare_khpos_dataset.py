@@ -1,9 +1,16 @@
 import os
 import argparse
+from re import S
+import numpy as np
+import tensorflow as tf
 from str2bool import str2bool
+from read_pos_map import read_pos_map
+from read_char_map import read_char_map
 
 parser = argparse.ArgumentParser(description='Prepare khPOS dataset to correct format.')
 parser.add_argument('data_dir', type=str, help='Path to dataset directory.')
+parser.add_argument('char_map', type=str, help='path to characters map file.')
+parser.add_argument('pos_map', type=str, help='path to pos map file.')
 parser.add_argument('--split_sentences', type=str2bool, nargs='?',
                     help='whether to generate more samples by splitting the sentences into chunks of 0 to length.', default=False)
 parser.add_argument('--output_dir', type=str,
@@ -13,6 +20,10 @@ args = parser.parse_args()
 assert os.path.exists(args.data_dir), "data_dir does not exist"
 os.makedirs(args.output_dir, exist_ok=True)
 
+pos_map, pos_to_index, _ = read_pos_map(args.pos_map)
+char_map, char_to_index, _ = read_char_map(args.char_map)
+
+print(char_to_index)
 
 REVISED_TAG = {
     "M": "NN",
@@ -46,30 +57,65 @@ def process_line(line):
     return X, y
 
 
-def process_dataset(filepath, split_sentences=False):
-    samples = []
-    with open(filepath, "r") as data_file:
+def write_samples_to_tfrecord(input_filepath, output_filepath, split_sentences=False):
+    writer = tf.io.TFRecordWriter(output_filepath)
+    count = 0
+    MAX_SENTENCE_LENGTH = -999
+    with open(input_filepath, "r") as data_file:
         lines = data_file.readlines()
-        for i, line in enumerate(lines):
+        for _, line in enumerate(lines):
             if split_sentences:
                 chunks = line.strip("\n").split(" ")
                 for start in range(0, len(chunks)+1):
                     for end in range(start+1, len(chunks)+1):
                         sub_line = " ".join(chunks[start:end])
                         X, y = process_line(sub_line)
-                        samples.append(f"{X}\t{y}\n")
+                        out = prepare_single_line(X, y)
+                        writer.write(out)
+                        count += 1
 
             X, y = process_line(line)
-            samples.append(f"{X}\t{y}")
-            if i != len(lines) - 1:
-                samples.append("\n")
+            if MAX_SENTENCE_LENGTH < len(X):
+                MAX_SENTENCE_LENGTH = len(X)
+            out = prepare_single_line(X, y)
+            writer.write(out)
+            count += 1
 
-    return samples
+    writer.close()
+    print(f"written samples: {count} | MAX_SENTENCE_LENGTH: {MAX_SENTENCE_LENGTH}")
 
 
-def write_samples_to_file(samples, output_filepath):
-    with open(output_filepath, "w") as output_file:
-        output_file.writelines(samples)
+def _bytes_feature(value):
+    """Returns a bytes_list from a string / byte."""
+    if isinstance(value, type(tf.constant(0))):  # if value ist tensor
+        value = value.numpy()  # get value of tensor
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def serialize_array(array):
+    array = tf.io.serialize_tensor(array)
+    return array
+
+
+def prepare_single_line(sentence, sentence_tag):
+    s, t = [], []
+    for char in sentence:
+        if char in char_to_index:
+            char_index = char_to_index[char]
+        else:
+            char_index = char_to_index["UNK"]
+        s.append(char_index)
+
+    for pos in sentence_tag.split("/")[1:]:
+        pos_index = pos_to_index[pos]
+        t.append(pos_index)
+
+    data = {
+        'sentence': _bytes_feature(serialize_array(s)),
+        'sentence_tag': _bytes_feature(serialize_array(t)),
+    }
+    out = tf.train.Example(features=tf.train.Features(feature=data))
+    return out.SerializeToString()
 
 
 if __name__ == "__main__":
@@ -77,6 +123,6 @@ if __name__ == "__main__":
     test_file_open = os.path.join(args.data_dir, "corpus-draft-ver-1.0/data/OPEN-TEST")
     test_file_close = os.path.join(args.data_dir, "corpus-draft-ver-1.0/data/CLOSE-TEST")
 
-    write_samples_to_file(process_dataset(training_file, args.split_sentences), os.path.join(args.output_dir, "train.txt"))
-    write_samples_to_file(process_dataset(test_file_open), os.path.join(args.output_dir, "test_open.txt"))
-    write_samples_to_file(process_dataset(test_file_close), os.path.join(args.output_dir, "test_close.txt"))
+    write_samples_to_tfrecord(training_file, os.path.join(args.output_dir, "train.tfrecord"), args.split_sentences)
+    write_samples_to_tfrecord(test_file_open, os.path.join(args.output_dir, "test_open.tfrecord"))
+    write_samples_to_tfrecord(test_file_close, os.path.join(args.output_dir, "test_close.tfrecord"))
