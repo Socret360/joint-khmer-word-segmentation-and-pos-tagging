@@ -88,15 +88,22 @@ if args.colab_tpu:
     tf.config.experimental_connect_to_cluster(resolver)
     tf.tpu.experimental.initialize_tpu_system(resolver)
     strategy = tf.distribute.experimental.TPUStrategy(resolver)
-    model = Network(
-        output_dim=len(pos_map),
-        embedding_dim=len(char_map),
-        num_stacks=config["model"]["num_stacks"],
-        batch_size=config["training"]["batch_size"] * strategy.num_replicas_in_sync,
-        hidden_layers_dim=config["model"]["hidden_layers_dim"],
-    )
 
-    model = tf.contrib.tpu.keras_to_tpu_model(model, strategy=strategy)
+    with strategy.scope():
+        model = Network(
+            output_dim=len(pos_map),
+            embedding_dim=len(char_map),
+            num_stacks=config["model"]["num_stacks"],
+            batch_size=config["training"]["batch_size"] * strategy.num_replicas_in_sync,
+            hidden_layers_dim=config["model"]["hidden_layers_dim"],
+        )
+        model.summary()
+
+        model.compile(
+            loss='categorical_crossentropy',
+            optimizer=Adam(learning_rate=config["training"]["learning_rate"])
+        )
+
 else:
     model = Network(
         output_dim=len(pos_map),
@@ -106,12 +113,12 @@ else:
         hidden_layers_dim=config["model"]["hidden_layers_dim"],
     )
 
-model.summary()
+    model.summary()
 
-model.compile(
-    loss='categorical_crossentropy',
-    optimizer=Adam(learning_rate=config["training"]["learning_rate"])
-)
+    model.compile(
+        loss='categorical_crossentropy',
+        optimizer=Adam(learning_rate=config["training"]["learning_rate"])
+    )
 
 model.fit(
     x=data_generator,
