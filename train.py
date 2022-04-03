@@ -52,6 +52,8 @@ dataset = dataset.batch(config["training"]["batch_size"])
 
 num_samples = dataset.reduce(np.int64(0), lambda x, _: x + 1)
 
+print(num_samples)
+
 model.fit(
     x=dataset,
     shuffle=args.shuffle,
