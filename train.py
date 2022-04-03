@@ -45,11 +45,12 @@ if args.colab_tpu:
     strategy = tf.distribute.experimental.TPUStrategy(resolver)
 
     with strategy.scope():
+        batch_size = config["training"]["batch_size"] * strategy.num_replicas_in_sync
         model = Network(
             output_dim=len(pos_map),
             embedding_dim=len(char_map),
             num_stacks=config["model"]["num_stacks"],
-            batch_size=config["training"]["batch_size"] * strategy.num_replicas_in_sync,
+            batch_size=batch_size,
             hidden_layers_dim=config["model"]["hidden_layers_dim"],
             max_sentence_length=config["model"]["max_sentence_length"],
         )
@@ -67,9 +68,14 @@ if args.colab_tpu:
                     pos_map=pos_map,
                     char_map=char_map,
                     shuffle=args.shuffle,
-                    batch_size=config["training"]["batch_size"],
+                    batch_size=batch_size,
                     max_sentence_length=config["model"]["max_sentence_length"],
-                )
+                ),
+                output_types=(tf.float32, tf.float32),
+                output_shapes=(
+                    tf.TensorShape([batch_size, config["model"]["max_sentence_length"], len(char_map)]),
+                    tf.TensorShape([batch_size, config["model"]["max_sentence_length"], len(pos_map)])
+                ),
             ),
             epochs=args.epochs,
             batch_size=config["training"]["batch_size"],
