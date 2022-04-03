@@ -65,7 +65,7 @@ if args.colab_tpu:
         dataset = dataset.batch(batch_size)
 
         model.fit(
-            x=dataset,
+            dataset,
             shuffle=args.shuffle,
             epochs=args.epochs,
             callbacks=[
