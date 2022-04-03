@@ -81,7 +81,7 @@ def start_training():
     model.save_weights(os.path.join(args.output_dir, "model.h5"))
 
 
-if args.tpu:
+if args.colab_tpu:
     # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
     resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
     # Connect to the TPU handle and initialise it
