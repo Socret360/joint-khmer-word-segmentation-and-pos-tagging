@@ -63,7 +63,10 @@ if args.colab_tpu:
         dataset = tf.data.TFRecordDataset(args.train_set)
         dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
 
-        num_samples = sum(1 for record in dataset)
+        num_samples = 0
+        for fn in dataset:
+            for record in tf.python_io.tf_record_iterator(fn):
+                num_samples += 1
 
         model.fit(
             dataset,
