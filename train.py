@@ -35,6 +35,7 @@ char_map, char_to_index, index_to_char = read_char_map(args.char_map)
 pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
 
 if args.colab_tpu:
+    AUTOTUNE = tf.data.AUTOTUNE
     try:
         resolver = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
         strategy = tf.distribute.experimental.TPUStrategy(resolver)
@@ -51,7 +52,6 @@ if args.colab_tpu:
             embedding_dim=len(char_map),
             num_stacks=config["model"]["num_stacks"],
             hidden_layers_dim=config["model"]["hidden_layers_dim"],
-            batch_size=batch_size,
             max_sentence_length=config["model"]["max_sentence_length"],
         )
         model.summary()
@@ -62,13 +62,15 @@ if args.colab_tpu:
         )
 
         dataset = tf.data.TFRecordDataset(args.train_set)
-        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
+        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]), num_parallel_calls=AUTOTUNE)
+
+        dataset = dataset.prefetch(buffer_size=AUTOTUNE)
+        dataset = dataset.batch(batch_size)
 
         model.fit(
             x=dataset,
             shuffle=args.shuffle,
             epochs=args.epochs,
-            batch_size=batch_size,
             callbacks=[
                 ModelCheckpoint(
                     filepath=os.path.join(
@@ -88,7 +90,6 @@ else:
         output_dim=len(pos_map),
         embedding_dim=len(char_map),
         num_stacks=config["model"]["num_stacks"],
-        batch_size=config["training"]["batch_size"],
         hidden_layers_dim=config["model"]["hidden_layers_dim"],
         max_sentence_length=config["model"]["max_sentence_length"],
     )
