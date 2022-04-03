@@ -62,9 +62,7 @@ if args.colab_tpu:
         )
 
         dataset = tf.data.TFRecordDataset(args.train_set)
-        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]), num_parallel_calls=AUTOTUNE)
-
-        dataset = dataset.prefetch(buffer_size=AUTOTUNE)
+        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
         dataset = dataset.batch(batch_size)
 
         model.fit(
