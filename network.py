@@ -2,7 +2,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import LSTM, Dense, Bidirectional, Activation, Input, Flatten
 
 
-def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size=128, max_sentence_length=None) -> Model:
+def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size=None, max_sentence_length=None) -> Model:
     """ Defines the structure of the network.
 
     Args

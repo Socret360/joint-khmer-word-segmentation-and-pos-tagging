@@ -111,8 +111,8 @@ def prepare_single_line(sentence, sentence_tag):
         t.append(pos_index)
 
     data = {
-        'sentence': _bytes_feature(serialize_array(s)),
-        'sentence_tag': _bytes_feature(serialize_array(t)),
+        'sentence': tf.train.Feature(int64_list=tf.train.Int64List(value=s)),
+        'sentence_tag': tf.train.Feature(int64_list=tf.train.Int64List(value=t)),
     }
     out = tf.train.Example(features=tf.train.Features(feature=data))
     return out.SerializeToString()

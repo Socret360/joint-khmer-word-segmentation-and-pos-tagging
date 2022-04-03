@@ -3,12 +3,12 @@ import tensorflow as tf
 
 def parse_tf_record_element(element, num_chars, num_pos, max_sentence_length):
     data = {
-        'sentence': tf.io.FixedLenFeature([], tf.string),
-        'sentence_tag': tf.io.FixedLenFeature([], tf.string),
+        'sentence': tf.io.VarLenFeature(tf.int64),
+        'sentence_tag': tf.io.VarLenFeature(tf.int64),
     }
     content = tf.io.parse_single_example(element, data)
-    sentence_indices = tf.io.parse_tensor(content['sentence'], out_type=tf.int32)
-    sentence_tag_indices = tf.io.parse_tensor(content['sentence_tag'], out_type=tf.int32)
+    sentence_indices = tf.sparse.to_dense(content['sentence'])
+    sentence_tag_indices = tf.sparse.to_dense(content['sentence_tag'])
     num_paddings = max_sentence_length - tf.shape(sentence_indices)[0]
 
     sentence_input_vector = tf.concat([
