@@ -12,6 +12,7 @@ class DataGenerator(Sequence):
     - pos_map: A python list where each item is a string representing a tag.
     - batch_size: An int representing the number of samples produce on each batch. (Defaults to 128)
     - shuffle: A boolean on whether to shuffle each samples in a batch.
+    - max_sentence_length: A int representing the maximum length of a setence in the dataset.
 
     Returns
     ---
@@ -30,7 +31,7 @@ class DataGenerator(Sequence):
     - Loem, M. (2021, May 4). Joint Khmer Word Segmentation and POS tagging. Medium. Retrieved February 22, 2022, from https://towardsdatascience.com/joint-khmer-word-segmentation-and-pos-tagging-cad650e78d30 
     """
 
-    def __init__(self, samples, char_map, pos_map, batch_size=128, shuffle=False):
+    def __init__(self, samples, char_map, pos_map, batch_size=128, shuffle=False, max_sentence_length=None):
         assert len(samples) > 0, "samples must not be empty."
         assert len(samples) > batch_size, "the number of samples must be larger than batch size."
         assert len(char_map) > 0, "char_map must not be empty."
@@ -42,6 +43,7 @@ class DataGenerator(Sequence):
         self.batch_size = batch_size
         self.num_chars = len(char_map)
         self.indices = range(0, len(self.samples))
+        self.max_sentence_length = max_sentence_length
         self.pos_to_index = {pos: i for i, pos in enumerate(pos_map)}
         self.char_to_index = {char: i for i, char in enumerate(char_map)}
         self.on_epoch_end()
@@ -64,7 +66,7 @@ class DataGenerator(Sequence):
         X = []
         y = []
 
-        max_sentence_length = max([len(self.samples[sample_idx].split("\t")[0]) for sample_idx in batch])
+        max_sentence_length = max([len(self.samples[sample_idx].split("\t")[0]) for sample_idx in batch]) if self.max_sentence_length == None else self.max_sentence_length
 
         for sample_idx in batch:
             sentence, sentence_tag = self.samples[sample_idx].split("\t")

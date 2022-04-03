@@ -41,45 +41,8 @@ data_generator = DataGenerator(
     char_map=char_map,
     shuffle=args.shuffle,
     batch_size=config["training"]["batch_size"],
+    max_sentence_length=config["model"]["max_sentence_length"],
 )
-
-
-def start_training():
-    model = Network(
-        output_dim=len(pos_map),
-        embedding_dim=len(char_map),
-        num_stacks=config["model"]["num_stacks"],
-        batch_size=config["training"]["batch_size"],
-        hidden_layers_dim=config["model"]["hidden_layers_dim"],
-    )
-
-    model.summary()
-
-    model.compile(
-        loss='categorical_crossentropy',
-        optimizer=Adam(learning_rate=config["training"]["learning_rate"])
-    )
-
-    model.fit(
-        x=data_generator,
-        epochs=args.epochs,
-        batch_size=config["training"]["batch_size"],
-        callbacks=[
-            ModelCheckpoint(
-                filepath=os.path.join(
-                    args.output_dir,
-                    "cp_{epoch:02d}_loss-{loss:.2f}.h5"
-                ),
-                save_weights_only=False,
-                save_best_only=True,
-                monitor='loss',
-                mode='min'
-            ),
-        ]
-    )
-
-    model.save_weights(os.path.join(args.output_dir, "model.h5"))
-
 
 if args.colab_tpu:
     # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
@@ -96,6 +59,7 @@ if args.colab_tpu:
             num_stacks=config["model"]["num_stacks"],
             batch_size=config["training"]["batch_size"] * strategy.num_replicas_in_sync,
             hidden_layers_dim=config["model"]["hidden_layers_dim"],
+            max_sentence_length=config["model"]["max_sentence_length"],
         )
         model.summary()
 
@@ -111,6 +75,7 @@ else:
         num_stacks=config["model"]["num_stacks"],
         batch_size=config["training"]["batch_size"],
         hidden_layers_dim=config["model"]["hidden_layers_dim"],
+        max_sentence_length=config["model"]["max_sentence_length"],
     )
 
     model.summary()

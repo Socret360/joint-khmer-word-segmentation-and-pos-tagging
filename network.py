@@ -2,7 +2,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import LSTM, Dense, Bidirectional, Activation, Input, Flatten
 
 
-def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size=128) -> Model:
+def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size=128, max_sentence_length=None) -> Model:
     """ Defines the structure of the network.
 
     Args
@@ -11,6 +11,7 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
     - embedding_dim: An int representing the size of the character vector.
     - num_stacks: An int representing the number of LSTM stacks.
     - batch_size: An int representing the batch size. (Defaults to 128)
+    - max_sentence_length: An int representing the max length of a sentence. (Defaults to None)
 
     Returns
     ---
@@ -36,7 +37,7 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
         assert batch_size > 0, "batch_size must be larger than 0"
     assert hidden_layers_dim > 0, "hidden_layers_dim must be larger than 0"
 
-    input_layer = Input(shape=(None, embedding_dim), batch_size=batch_size)
+    input_layer = Input(shape=(max_sentence_length, embedding_dim), batch_size=batch_size)
     x = Bidirectional(LSTM(hidden_layers_dim, return_sequences=True))(input_layer)
     for i in range(num_stacks - 1):
         x = Bidirectional(LSTM(hidden_layers_dim, return_sequences=i != num_stacks-1))(x)

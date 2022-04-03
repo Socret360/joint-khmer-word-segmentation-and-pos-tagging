@@ -34,6 +34,7 @@ model = Network(
     num_stacks=config["model"]["num_stacks"],
     batch_size=1,
     hidden_layers_dim=config["model"]["hidden_layers_dim"],
+    max_sentence_length=config["model"]["max_sentence_length"],
 )
 
 model.load_weights(args.weights, by_name=True)
