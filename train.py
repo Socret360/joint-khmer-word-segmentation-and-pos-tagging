@@ -34,8 +34,6 @@ os.makedirs(args.output_dir, exist_ok=True)
 char_map, char_to_index, index_to_char = read_char_map(args.char_map)
 pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
 
-dataset = tf.data.TFRecordDataset(args.train_set)
-dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
 
 if args.colab_tpu:
     # # Get a handle to the attached TPU. On GCP it will be the CloudTPU itself
@@ -70,6 +68,9 @@ if args.colab_tpu:
             loss='categorical_crossentropy',
             optimizer=Adam(learning_rate=config["training"]["learning_rate"])
         )
+
+        dataset = tf.data.TFRecordDataset(args.train_set)
+        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
 
         model.fit(
             x=dataset,
@@ -106,6 +107,9 @@ else:
         loss='categorical_crossentropy',
         optimizer=Adam(learning_rate=config["training"]["learning_rate"])
     )
+
+    dataset = tf.data.TFRecordDataset(args.train_set)
+    dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
 
     model.fit(
         x=dataset,
