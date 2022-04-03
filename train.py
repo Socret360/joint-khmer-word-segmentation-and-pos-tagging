@@ -62,7 +62,7 @@ if args.colab_tpu:
         )
 
         dataset = tf.data.TFRecordDataset(args.train_set)
-        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), char_to_index, pos_to_index, config["model"]["max_sentence_length"]))
+        dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
 
         model.fit(
             x=dataset,
