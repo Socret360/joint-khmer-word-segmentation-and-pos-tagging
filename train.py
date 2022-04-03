@@ -35,7 +35,6 @@ char_map, char_to_index, index_to_char = read_char_map(args.char_map)
 pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
 
 if args.colab_tpu:
-    AUTOTUNE = tf.data.AUTOTUNE
     try:
         resolver = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
         strategy = tf.distribute.experimental.TPUStrategy(resolver)
