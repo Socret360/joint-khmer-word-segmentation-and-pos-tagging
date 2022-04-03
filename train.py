@@ -88,8 +88,47 @@ if args.colab_tpu:
     tf.config.experimental_connect_to_cluster(resolver)
     tf.tpu.experimental.initialize_tpu_system(resolver)
     strategy = tf.distribute.experimental.TPUStrategy(resolver)
+    model = Network(
+        output_dim=len(pos_map),
+        embedding_dim=len(char_map),
+        num_stacks=config["model"]["num_stacks"],
+        batch_size=config["training"]["batch_size"] * strategy.num_replicas_in_sync,
+        hidden_layers_dim=config["model"]["hidden_layers_dim"],
+    )
 
-    with strategy.scope():
-        start_training()
+    model = tf.contrib.tpu.keras_to_tpu_model(model, strategy=strategy)
 else:
-    start_training()
+    model = Network(
+        output_dim=len(pos_map),
+        embedding_dim=len(char_map),
+        num_stacks=config["model"]["num_stacks"],
+        batch_size=config["training"]["batch_size"],
+        hidden_layers_dim=config["model"]["hidden_layers_dim"],
+    )
+
+model.summary()
+
+model.compile(
+    loss='categorical_crossentropy',
+    optimizer=Adam(learning_rate=config["training"]["learning_rate"])
+)
+
+model.fit(
+    x=data_generator,
+    epochs=args.epochs,
+    batch_size=config["training"]["batch_size"],
+    callbacks=[
+        ModelCheckpoint(
+            filepath=os.path.join(
+                args.output_dir,
+                "cp_{epoch:02d}_loss-{loss:.2f}.h5"
+            ),
+            save_weights_only=False,
+            save_best_only=True,
+            monitor='loss',
+            mode='min'
+        ),
+    ]
+)
+
+model.save_weights(os.path.join(args.output_dir, "model.h5"))
