@@ -72,8 +72,6 @@ num_samples = sum(1 for _ in dataset)
 
 dataset = dataset.batch(config["training"]["batch_size"])
 
-print(num_samples)
-
 model.fit(
     x=dataset,
     shuffle=args.shuffle,
