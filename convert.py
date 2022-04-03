@@ -52,8 +52,7 @@ elif args.output_type == "tflite":
     tflite_converter.optimizations = [tf.lite.Optimize.DEFAULT]
     tflite_converter.target_spec.supported_ops = [
         tf.lite.OpsSet.TFLITE_BUILTINS,
-        tf.lite.OpsSet.SELECT_TF_OPS,
-        tf.float16,
+        tf.lite.OpsSet.SELECT_TF_OPS
     ]
     tflite_model = tflite_converter.convert()
     open(os.path.join(args.output_dir, f"{config_file_name}.tflite"), 'wb').write(
