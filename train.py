@@ -1,12 +1,11 @@
+import os
+import argparse
+import tensorflow as tf
+from network import Network
+from data_generator import DataGenerator
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint
-import tensorflow as tf
-import os
-import json
-import numpy as np
-import argparse
-from network import Network
-from utils import str2bool, read_pos_map, read_char_map, read_config, parse_tf_record_element
+from utils import str2bool, read_pos_map, read_char_map, read_config, read_samples
 
 parser = argparse.ArgumentParser(description='Start the training process.')
 parser.add_argument('config', type=str, help='path to config file.')
@@ -28,8 +27,17 @@ config = read_config(args.config)
 
 os.makedirs(args.output_dir, exist_ok=True)
 
-char_map, char_to_index, index_to_char = read_char_map(args.char_map)
-pos_map, pos_to_index, index_to_pos = read_pos_map(args.pos_map)
+char_map = read_char_map(args.char_map)
+pos_map = read_pos_map(args.pos_map)
+samples = read_samples(args.train_set)
+
+data_generator = DataGenerator(
+    samples=samples,
+    pos_map=pos_map,
+    char_map=char_map,
+    shuffle=args.shuffle,
+    batch_size=config["training"]["batch_size"],
+)
 
 model = Network(
     output_dim=len(pos_map),
@@ -46,38 +54,10 @@ model.compile(
     optimizer=Adam(learning_rate=config["training"]["learning_rate"])
 )
 
-
-def count_tfrecord_examples(
-        tfrecords_dir: str,
-) -> int:
-    """
-    Counts the total number of examples in a collection of TFRecord files.
-
-    :param tfrecords_dir: directory that is assumed to contain only TFRecord files
-    :return: the total number of examples in the collection of TFRecord files
-        found in the specified directory
-    """
-
-    count = 0
-    for file_name in os.listdir(tfrecords_dir):
-        tfrecord_path = os.path.join(tfrecords_dir, file_name)
-        count += sum(1 for _ in tf.data.TFRecordDataset(tfrecord_path))
-
-    return count
-
-
-dataset = tf.data.TFRecordDataset(args.train_set)
-dataset = dataset.map(lambda x: parse_tf_record_element(x, len(char_map), len(pos_map), config["model"]["max_sentence_length"]))
-num_samples = sum(1 for _ in dataset)
-
-dataset = dataset.batch(config["training"]["batch_size"])
-
 model.fit(
-    x=dataset,
+    x=data_generator,
     shuffle=args.shuffle,
     epochs=args.epochs,
-    batch_size=config["training"]["batch_size"],
-    steps_per_epoch=num_samples//config["training"]["batch_size"],
     callbacks=[
         ModelCheckpoint(
             filepath=os.path.join(
