@@ -5,6 +5,7 @@
     },
     "model": {
         "num_stacks": 2,
-        "hidden_layers_dim": 100
+        "hidden_layers_dim": 100,
+        "max_sentence_length": 687
     }
 }

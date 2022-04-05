@@ -43,9 +43,11 @@ pos_count = {pos: {"correct": 0, "corpus": 0} for pos in pos_map}
 
 with open(os.path.join(args.output_dir, "evaluation_results.txt"), "w") as output_file:
     for sample in samples:
+        max_sentence_length = len(sentence) if config["model"]["max_sentence_length"] == None else config["model"]["max_sentence_length"]
         sentence, sentence_tag = sample.split("\t")
-        sentence_input_vector = np.zeros((len(sentence), num_chars))
-        sentence_output_vector = np.zeros((len(sentence), num_pos))
+        num_paddings = max_sentence_length - len(sentence)
+        sentence_input_vector = np.zeros((len(sentence) + num_paddings, num_chars))
+        sentence_output_vector = np.zeros((len(sentence) + num_paddings, num_pos))
         for i, char in enumerate(sentence):
             if char in char_to_index:
                 char_index = char_to_index[char]
@@ -62,19 +64,20 @@ with open(os.path.join(args.output_dir, "evaluation_results.txt"), "w") as outpu
 
         words, tmp = [], []
         for char_idx, pos_vector in enumerate(pred):
-            pos_index_pred = np.argmax(pos_vector)
-            pos_index_target = np.argmax(sentence_output_vector[char_idx])
+            if char_idx < len(sentence):
+                pos_index_pred = np.argmax(pos_vector)
+                pos_index_target = np.argmax(sentence_output_vector[char_idx])
 
-            if pos_index_pred == pos_index_target:
-                pos_count[index_to_pos[pos_index_pred]]["correct"] += 1
+                if pos_index_pred == pos_index_target:
+                    pos_count[index_to_pos[pos_index_pred]]["correct"] += 1
 
-            if index_to_pos[pos_index_pred] == "NS":
-                tmp.append(sentence[char_idx])
-            else:
-                if len(tmp) > 0:
-                    words.append("".join(tmp))
-                    tmp = []
-                tmp.append(sentence[char_idx])
+                if index_to_pos[pos_index_pred] == "NS":
+                    tmp.append(sentence[char_idx])
+                else:
+                    if len(tmp) > 0:
+                        words.append("".join(tmp))
+                        tmp = []
+                    tmp.append(sentence[char_idx])
 
         if len(tmp) > 0:
             words.append("".join(tmp))

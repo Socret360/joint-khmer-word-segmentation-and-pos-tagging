@@ -18,7 +18,8 @@ tensorflow==2.7.0
     },
     "model": {
         "num_stacks": 2, // The number of LSTM layer stacks.
-        "hidden_layers_dim": 100 // The number of units for each hidden LSTM layers.
+        "hidden_layers_dim": 100, // The number of units for each hidden LSTM layers.
+        "max_sentence_length": 687 // The maximum number of characters in a sentence.
     }
 }
 ```
@@ -100,7 +101,7 @@ optional arguments:
 
 ## About Pretrained Weights
 
-You can access a pretrained weights [here](pretrained). The network was trained for 300 epochs on [khPOS's train.all2 dataset](https://github.com/ye-kyaw-thu/khPOS).
+You can access a pretrained weights [here](pretrained). The network was trained for 12 epochs on a modified version of the [khPOS's train.all2 dataset](https://github.com/ye-kyaw-thu/khPOS). The original data consists of 12000 sentences. However, for the pretrained weights, the sentences is splitted into sentences chunks. The resulting dataset consists of 2,172,051 samples. See [utils/prepare_khpos_dataset.py](utils/prepare_khpos_dataset.py) to understand the data conversion process.
 
 ## Converting Pretrained Weights
 
@@ -137,126 +138,126 @@ optional arguments:
         <tr>
             <td rowspan=15>khPOS OPEN-TEST</td>
             <td>AB</td>
-            <td>0.0</td>
-            <td rowspan=15>91.75</td>
+            <td>100.00</td>
+            <td rowspan=15>94.09</td>
         </tr>
         <tr>
             <td>AUX</td>
-            <td>95.91</td>
+            <td>96.82</td>
         </tr>
         <tr>
             <td>CC</td>
-            <td>91.67</td>
+            <td>96.67</td>
         </tr>
         <tr>
             <td>CD</td>
-            <td>94.06</td>
+            <td>97.55</td>
         </tr>
         <tr>
             <td>DT</td>
-            <td>93.07</td>
+            <td>97.87</td>
         </tr>
         <tr>
           <td>IN</td>
-          <td>94.12</td>
+          <td>93.75</td>
         </tr>
         <tr>
           <td>JJ</td>
-          <td>67.4 </td>
+          <td>80.39</td>
         </tr>
         <tr>
           <td>VB</td>
-          <td>88.67</td>
+          <td>91.44</td>
         </tr>
         <tr>
           <td>NN</td>
-          <td>94.17</td>
+          <td>95.17</td>
         </tr>
         <tr>
           <td>PN</td>
-          <td>91.06</td>
+          <td>93.88</td>
         </tr>
         <tr>
           <td>PA</td>
-          <td>56.76</td>
+          <td>75.68</td>
         </tr>
         <tr>
           <td>PRO</td>
-          <td>96.83</td>
+          <td>98.80</td>
         </tr>
         <tr>
           <td>QT</td>
-          <td>0.0</td>
+          <td>80.00</td>
         </tr>
         <tr>
           <td>RB</td>
-          <td>87.87</td>
+          <td>88.99</td>
         </tr>
         <tr>
           <td>SYM</td>
-          <td>98.61</td>
+          <td>97.81</td>
         </tr>
         <tr>
             <td rowspan=15>khPOS CLOSE-TEST</td>
             <td>AB</td>
-            <td>0.0</td>
-            <td rowspan=15>95.78</td>
+            <td>100.00</td>
+            <td rowspan=15>99.20</td>
         </tr>
         <tr>
             <td>AUX</td>
-            <td>99.49</td>
+            <td>100.00</td>
         </tr>
         <tr>
             <td>CC</td>
-            <td>91.83</td>
+            <td>99.52</td>
         </tr>
         <tr>
             <td>CD</td>
-            <td>98.91</td>
+            <td>100.00</td>
         </tr>
         <tr>
             <td>DT</td>
-            <td>97.42</td>
+            <td>100.00</td>
         </tr>
         <tr>
           <td>IN</td>
-          <td>97.15</td>
+          <td>99.81</td>
         </tr>
         <tr>
           <td>JJ</td>
-          <td>81.13</td>
+          <td>99.15</td>
         </tr>
         <tr>
           <td>VB</td>
-          <td>95.54</td>
+          <td>99.39</td>
         </tr>
         <tr>
           <td>NN</td>
-          <td>98.53</td>
+          <td>99.88</td>
         </tr>
         <tr>
           <td>PN</td>
-          <td>93.49</td>
+          <td>97.18</td>
         </tr>
         <tr>
           <td>PA</td>
-          <td>64.79</td>
+          <td>87.32</td>
         </tr>
         <tr>
           <td>PRO</td>
-          <td>98.97</td>
+          <td>99.74</td>
         </tr>
         <tr>
           <td>QT</td>
-          <td>0.0</td>
+          <td>100.00</td>
         </tr>
         <tr>
           <td>RB</td>
-          <td>89.42</td>
+          <td>99.14</td>
         </tr>
         <tr>
           <td>SYM</td>
-          <td>99.35</td>
+          <td>100.00</td>
         </tr>
     </tbody>
 </table>
