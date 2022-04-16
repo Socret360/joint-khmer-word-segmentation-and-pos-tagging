@@ -66,13 +66,11 @@ class DataGenerator(Sequence):
         X = []
         y = []
 
-        max_sentence_length = max([len(self.samples[sample_idx].split("\t")[0]) for sample_idx in batch]) if self.max_sentence_length == None else self.max_sentence_length
-
         for sample_idx in batch:
             sentence, sentence_tag = self.samples[sample_idx].split("\t")
-            num_paddings = max_sentence_length - len(sentence)
-            sentence_input_vector = np.zeros((len(sentence) + num_paddings, self.num_chars), dtype=np.float32)
-            sentence_output_vector = np.zeros((len(sentence) + num_paddings, self.num_pos), dtype=np.float32)
+
+            sentence_input_vector = np.zeros((self.max_sentence_length, self.num_chars), dtype=np.float32)
+            sentence_output_vector = np.zeros((self.max_sentence_length, self.num_pos), dtype=np.float32)
 
             for i, char in enumerate(sentence):
                 if char in self.char_to_index:

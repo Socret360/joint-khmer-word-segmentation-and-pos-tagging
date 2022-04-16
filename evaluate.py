@@ -2,8 +2,12 @@ import os
 import json
 import argparse
 import numpy as np
+import tensorflow as tf
 from network import Network
 from utils import read_pos_map, read_char_map, read_config, read_samples
+
+# def preprocess_input():
+
 
 parser = argparse.ArgumentParser(description='Start the evaluation process.')
 parser.add_argument('config', type=str, help='path to config file.')
@@ -28,72 +32,88 @@ pos_to_index = {pos: i for i, pos in enumerate(pos_map)}
 index_to_pos = {i: pos for i, pos in enumerate(pos_map)}
 char_to_index = {char: i for i, char in enumerate(char_map)}
 
-model = Network(
-    output_dim=len(pos_map),
-    embedding_dim=len(char_map),
-    num_stacks=config["model"]["num_stacks"],
-    batch_size=1,
-    hidden_layers_dim=config["model"]["hidden_layers_dim"],
-    max_sentence_length=config["model"]["max_sentence_length"],
-)
-
-model.load_weights(args.weights, by_name=True)
-
 pos_count = {pos: {"correct": 0, "corpus": 0} for pos in pos_map}
 
-with open(os.path.join(args.output_dir, "evaluation_results.txt"), "w") as output_file:
-    for sample in samples:
-        max_sentence_length = len(sentence) if config["model"]["max_sentence_length"] == None else config["model"]["max_sentence_length"]
-        sentence, sentence_tag = sample.split("\t")
-        num_paddings = max_sentence_length - len(sentence)
-        sentence_input_vector = np.zeros((len(sentence) + num_paddings, num_chars))
-        sentence_output_vector = np.zeros((len(sentence) + num_paddings, num_pos))
-        for i, char in enumerate(sentence):
-            if char in char_to_index:
-                char_index = char_to_index[char]
+
+def preprocess_sample(sample):
+    sentence, sentence_tag = sample.split("\t")
+    sentence_input_vector = np.zeros((config["model"]["max_sentence_length"], num_chars))
+    sentence_output_vector = np.zeros((config["model"]["max_sentence_length"], num_pos))
+    for i, char in enumerate(sentence):
+        if char in char_to_index:
+            char_index = char_to_index[char]
+        else:
+            char_index = char_to_index["UNK"]
+        sentence_input_vector[i, char_index] = 1
+
+    for i, pos in enumerate(sentence_tag.split("/")[1:]):
+        pos_index = pos_to_index[pos]
+        sentence_output_vector[i, pos_index] = 1
+        pos_count[index_to_pos[pos_index]]["corpus"] += 1
+
+    return sentence_input_vector, sentence_output_vector, sentence
+
+
+if __name__ == "__main__":
+    if "tflite" in args.weights:
+        model = tf.lite.Interpreter(model_path=args.weights)
+        model.allocate_tensors()
+        input_details = model.get_input_details()
+        output_details = model.get_output_details()
+    else:
+        model = Network(
+            output_dim=len(pos_map),
+            embedding_dim=len(char_map),
+            num_stacks=config["model"]["num_stacks"],
+            hidden_layers_dim=config["model"]["hidden_layers_dim"],
+            max_sentence_length=config["model"]["max_sentence_length"],
+        )
+        model.summary()
+        model.load_weights(args.weights, by_name=True)
+
+    with open(os.path.join(args.output_dir, "evaluation_results.txt"), "w") as output_file:
+        for sample in samples:
+            sentence_input_vector, sentence_output_vector, sentence = preprocess_sample(sample)
+
+            if "tflite" in args.weights:
+                model.set_tensor(input_details[0]['index'], np.array([sentence_input_vector], dtype=np.float32))
+                model.invoke()
+                pred = model.get_tensor(output_details[0]['index'])[0]
             else:
-                char_index = char_to_index["UNK"]
-            sentence_input_vector[i, char_index] = 1
+                pred = model.predict(np.array([sentence_input_vector]))[0]
 
-        for i, pos in enumerate(sentence_tag.split("/")[1:]):
-            pos_index = pos_to_index[pos]
-            sentence_output_vector[i, pos_index] = 1
-            pos_count[index_to_pos[pos_index]]["corpus"] += 1
+            words, tmp = [], []
+            for char_idx, pos_vector in enumerate(pred):
+                if char_idx < len(sentence):
+                    pos_index_pred = np.argmax(pos_vector)
+                    pos_index_target = np.argmax(sentence_output_vector[char_idx])
 
-        pred = model.predict(np.array([sentence_input_vector]))[0]
+                    if pos_index_pred == pos_index_target:
+                        pos_count[index_to_pos[pos_index_pred]]["correct"] += 1
 
-        words, tmp = [], []
-        for char_idx, pos_vector in enumerate(pred):
-            if char_idx < len(sentence):
-                pos_index_pred = np.argmax(pos_vector)
-                pos_index_target = np.argmax(sentence_output_vector[char_idx])
+                    if index_to_pos[pos_index_pred] == "NS":
+                        tmp.append(sentence[char_idx])
+                    else:
+                        if len(tmp) > 0:
+                            words.append("".join(tmp))
+                            tmp = []
+                        tmp.append(sentence[char_idx])
 
-                if pos_index_pred == pos_index_target:
-                    pos_count[index_to_pos[pos_index_pred]]["correct"] += 1
+            if len(tmp) > 0:
+                words.append("".join(tmp))
 
-                if index_to_pos[pos_index_pred] == "NS":
-                    tmp.append(sentence[char_idx])
-                else:
-                    if len(tmp) > 0:
-                        words.append("".join(tmp))
-                        tmp = []
-                    tmp.append(sentence[char_idx])
+            output_file.write(f"{sentence}\t{' '.join(words)}\n")
 
-        if len(tmp) > 0:
-            words.append("".join(tmp))
+        total_correct = 0
+        total_corpus = 0
+        for pos in pos_count:
+            if pos not in ["NS"]:
+                correct = pos_count[pos]["correct"]
+                corpus = pos_count[pos]["corpus"]
+                total_corpus += pos_count[pos]["corpus"]
+                total_correct += pos_count[pos]["correct"]
+                accuracy = round((correct / corpus)*100, 2)
+                print(f"-- {pos}: {accuracy} | correct: {correct}, corpus: {corpus}")
 
-        output_file.write(f"{sentence}\t{' '.join(words)}\n")
-
-    total_correct = 0
-    total_corpus = 0
-    for pos in pos_count:
-        if pos not in ["NS"]:
-            correct = pos_count[pos]["correct"]
-            corpus = pos_count[pos]["corpus"]
-            total_corpus += pos_count[pos]["corpus"]
-            total_correct += pos_count[pos]["correct"]
-            accuracy = round((correct / corpus)*100, 2)
-            print(f"-- {pos}: {accuracy} | correct: {correct}, corpus: {corpus}")
-
-    accuracy = round((total_correct / total_corpus)*100, 2)
-    print(f"AVERAGE ACCURACY: {accuracy}")
+        accuracy = round((total_correct / total_corpus)*100, 2)
+        print(f"AVERAGE ACCURACY: {accuracy}")

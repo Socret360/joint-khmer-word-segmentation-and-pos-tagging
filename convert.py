@@ -1,6 +1,7 @@
 import os
-import json
+import shutil
 import argparse
+import numpy as np
 import tensorflow as tf
 from network import Network
 from utils import read_config, read_char_map, read_pos_map
@@ -36,9 +37,11 @@ model = Network(
     output_dim=len(pos_map),
     embedding_dim=len(char_map),
     num_stacks=config["model"]["num_stacks"],
-    batch_size=None,
     hidden_layers_dim=config["model"]["hidden_layers_dim"],
+    max_sentence_length=config["model"]["max_sentence_length"],
 )
+
+model.summary()
 
 model.load_weights(args.weights)
 
@@ -48,12 +51,14 @@ config_file_name = config_file_name[:config_file_name.index(".")]
 if args.output_type == "keras":
     model.save(os.path.join(args.output_dir, f"{config_file_name}.h5"))
 elif args.output_type == "tflite":
-    tflite_converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    tflite_converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    tflite_converter.target_spec.supported_ops = [
-        tf.lite.OpsSet.TFLITE_BUILTINS,
-        tf.lite.OpsSet.SELECT_TF_OPS
-    ]
+    temp_saved_model = os.path.join(args.output_dir, f"{config_file_name}")
+    run_model = tf.function(lambda x: model(x))
+    concrete_func = run_model.get_concrete_function(tf.TensorSpec([1, config["model"]["max_sentence_length"], len(char_map)], model.inputs[0].dtype))
+    model.save(temp_saved_model, save_format="tf", signatures=concrete_func)
+
+    tflite_converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir=temp_saved_model, signature_keys=['serving_default'])
     tflite_model = tflite_converter.convert()
-    open(os.path.join(args.output_dir, f"{config_file_name}.tflite"), 'wb').write(
-        tflite_model)
+    output_file_path = os.path.join(args.output_dir, f"{config_file_name}.tflite")
+    open(output_file_path, 'wb').write(tflite_model)
+
+    shutil.rmtree(temp_saved_model)

@@ -2,7 +2,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import LSTM, Dense, Bidirectional, Activation, Input, Flatten
 
 
-def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size=None, max_sentence_length=None) -> Model:
+def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, max_sentence_length=None) -> Model:
     """ Defines the structure of the network.
 
     Args
@@ -10,7 +10,7 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
     - output_dim: An int representing the size of the output vector.
     - embedding_dim: An int representing the size of the character vector.
     - num_stacks: An int representing the number of LSTM stacks.
-    - batch_size: An int representing the batch size. (Defaults to 128)
+    - hidden_layers_dim: An int representing the number of units for each hidden layer.
     - max_sentence_length: An int representing the max length of a sentence. (Defaults to None)
 
     Returns
@@ -22,7 +22,6 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
     - `output_dim` must be larger than 0
     - `embedding_dim` must be larger than 0
     - `num_stacks` must be larger than 0
-    - `batch_size` must be larger than 0
     - `hidden_layers_dim` must be larger than 0
 
     References
@@ -33,8 +32,6 @@ def Network(output_dim, embedding_dim, num_stacks, hidden_layers_dim, batch_size
     assert output_dim > 0, "output_dim must be larger than 0"
     assert embedding_dim > 0, "embedding_dim must be larger than 0"
     assert num_stacks > 0, "num_stacks must be larger than 0"
-    if batch_size is not None:
-        assert batch_size > 0, "batch_size must be larger than 0"
     assert hidden_layers_dim > 0, "hidden_layers_dim must be larger than 0"
 
     input_layer = Input(shape=(max_sentence_length, embedding_dim))
